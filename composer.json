@@ -54,10 +54,7 @@
     "build-assets": [
       "./scripts/composer/install-or-update"
     ],
-    "prepare-for-pantheon": "DrupalProject\\composer\\ScriptHandler::prepareForPantheon",
-    "post-create-project-cmd": [
-      "rm README.md LICENSE .travis.yml phpunit.xml.dist"
-    ]
+    "prepare-for-pantheon": "DrupalProject\\composer\\ScriptHandler::prepareForPantheon"
   },
   "extra": {
     "installer-paths": {
