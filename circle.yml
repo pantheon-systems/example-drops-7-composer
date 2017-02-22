@@ -1,0 +1,85 @@
+# https://circleci.com/docs/configuration#machine
+machine:
+  timezone:
+    America/Chicago
+  php:
+    # https://circleci.com/docs/build-image-trusty/#php
+    version: 7.0.11
+  environment:
+    # This repository requires environmental variables that are likely to change
+    # as it is copied for different websites. Those variables can be defined
+    # in the CircleCI UI which can keep the values of variables hidden.
+    # That functionality is important for variables like these:
+    ### The password to be used for Drupal's user 1 account.
+    # ADMIN_PASSWORD: xxxxxxxxxxxxxxx
+    ### Generate from https://dashboard.pantheon.io/users/#account/tokens/
+    ### Allows Terminus, the Pantheon CLI to authenticate with Pantheon.
+    # TERMINUS_TOKEN: xxxxxxxxxxxxxxx
+    ### Allows Pantheon to post back comments to Github pull requests.
+    ### Generate from https://github.com/settings/tokens
+    # GITHUB_TOKEN: xxxxxxxxxxxxxxx
+    # Some required variables are not necessarily sensitive pieces of
+    # information and could be defined here in the circle.yml or in the UI.
+    ### The email address to be used for Drupal's user 1 account.
+    # ADMIN_EMAIL: testing@example.com
+    ### The email address used for the user making git commits in CircleCI.
+    # GIT_EMAIL: me@example.com
+    ### The machine name of the site on Pantheon to which code is pushed.
+    # TERMINUS_SITE my-site-name
+    ### The name of the site to be used when installing Drupal through Behat.
+    # TEST_SITE_NAME: My Site Name
+    # These variables do not need to change with each copy of the repo.
+    BRANCH: $(echo $CIRCLE_BRANCH | grep -v '^\(master\|[0-9]\+.x\)$')
+    PR_LABEL: ${BRANCH:+pr-$BRANCH}
+    CI_LABEL: ci-$CIRCLE_BUILD_NUM
+    TERMINUS_ENV: $(echo ${PR_LABEL:-$CI_LABEL} | cut -c -11 | sed 's/-$//')
+    NOTIFY: 'scripts/github/add-commit-comment {project} {sha} "Created multidev environment [{site}#{env}]({dashboard-url})." {site-url}'
+    PATH: $PATH:~/.composer/vendor/bin:~/.config/composer/vendor/bin:tests/scripts
+
+dependencies:
+  cache_directories:
+    - ~/.composer/cache
+  pre:
+    - echo "Begin build for $CI_LABEL${PR_LABEL:+ for }$PR_LABEL. Pantheon test environment is $TERMINUS_SITE.$TERMINUS_ENV"
+    # Avoid ssh prompting when connecting to new ssh hosts
+    - echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+    - |
+      if [ -n "$GITHUB_TOKEN" ] ; then
+        composer config --global github-oauth.github.com $GITHUB_TOKEN
+      fi
+    - git config --global user.email "$GIT_EMAIL"
+    - git config --global user.name "Circle CI"
+  override:
+    - composer global require -n "hirak/prestissimo:^0.3"
+    - composer global require -n "consolidation/cgr"
+    - cgr "pantheon-systems/terminus:~1" --stability beta
+    - terminus --version
+    - cgr "drush/drush:~8"
+    - mkdir -p ~/.terminus/plugins
+    - composer create-project -n -d ~/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:~1
+    - composer create-project -n -d ~/.terminus/plugins pantheon-systems/terminus-secrets-plugin:~1
+  post:
+    - terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
+    - terminus build-env:delete:ci -n "$TERMINUS_SITE" --keep=2 --yes
+    - composer -n build-assets
+    - terminus env:wake -n "$TERMINUS_SITE.dev"
+    - terminus build-env:create -n "$TERMINUS_SITE.dev" "$TERMINUS_ENV" --yes --notify="$NOTIFY"
+    - |
+      if [ ! -f "config/system.site.yml" ] ; then
+        terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD"
+      else
+        terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD" --config-dir=../config
+      fi
+test:
+  override:
+    - run-behat
+  post:
+    - terminus secrets:set -n "$TERMINUS_SITE.$TERMINUS_ENV" token "$GITHUB_TOKEN" --file='github-secrets.json' --clear --skip-if-empty
+
+deployment:
+  build-assets:
+    branch: master
+    commands:
+      - terminus build-env:merge -n "$TERMINUS_SITE.$TERMINUS_ENV" --yes
+      - terminus drush -n $TERMINUS_SITE.dev -- updatedb --yes
+      - terminus build-env:delete:pr -n "$TERMINUS_SITE" --yes

@@ -1,30 +1,64 @@
 {
-  "name": "drupal-composer/drupal-project",
-  "description": "Composer template for Drupal projects",
+  "name": "pantheon-systems/example-drops-7-composer",
+  "description": "Install drops-7 with Composer on Pantheon.",
+  "type": "project",
+  "license": "MIT",
   "repositories": {
     "drupal": {
       "type": "composer",
       "url":  "https://packages.drupal.org/7"
+    },
+    "drops": {
+      "type": "vcs",
+      "url": "https://github.com/pantheon-systems/drops-7-composer"
     }
   },
   "require": {
     "composer/installers": "~1.0",
+    "rvtraveller/qs-composer-installer": "^1.1",
     "derhasi/composer-preserve-paths": "0.1.*",
-    "drupal/drupal": "7.*"
+    "cweagans/composer-patches": "^1.0",
+
+    "pantheon-systems/drops-7-composer": "7.*",
+
+    "drush/drush": "~8"
+  },
+  "require-dev": {
+    "mikey179/vfsstream": "^1.2",
+    "behat/behat": "3.*",
+    "behat/mink": "^1.7",
+    "behat/mink-extension": "^2.2",
+    "behat/mink-goutte-driver": "^1.2",
+    "jcalderonzumba/gastonjs": "^1.0.2",
+    "jcalderonzumba/mink-phantomjs-driver": "^0.3.1",
+    "drupal/drupal-extension": "^3.1",
+    "drush-ops/behat-drush-endpoint": "^0.0.4",
+    "pantheon-systems/quicksilver-pushback": "~1",
+    "phpunit/phpunit": "^4.8",
+    "symfony/css-selector": "^2.8"
   },
   "conflict": {
     "drupal/core": "8.*"
   },
+  "config": {
+    "vendor-dir": "vendor"
+  },
+  "minimum-stability": "alpha",
+  "prefer-stable": true,
+  "autoload": {
+    "classmap": [
+      "scripts/composer/ScriptHandler.php"
+    ]
+  },
   "scripts": {
+    "build-assets": [
+      "./scripts/composer/install-or-update"
+    ],
+    "prepare-for-pantheon": "DrupalProject\\composer\\ScriptHandler::prepareForPantheon",
     "post-create-project-cmd": [
       "rm README.md LICENSE .travis.yml phpunit.xml.dist"
     ]
   },
-  "config": {
-    "vendor-dir": "vendor"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "extra": {
     "installer-paths": {
       "web/": ["type:drupal-core"],
