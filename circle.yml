@@ -64,12 +64,7 @@ dependencies:
     - composer -n build-assets
     - terminus env:wake -n "$TERMINUS_SITE.dev"
     - terminus build-env:create -n "$TERMINUS_SITE.dev" "$TERMINUS_ENV" --yes --notify="$NOTIFY"
-    - |
-      if [ ! -f "config/system.site.yml" ] ; then
-        terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD"
-      else
-        terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD" --config-dir=../config
-      fi
+    - terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD"
 test:
   override:
     - run-behat
