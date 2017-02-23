@@ -2,7 +2,9 @@
 
 This repository can be used to set up a Composer-Managed Drupal 7 site on [Pantheon](https://pantheon.io).
 
-[![CircleCI](https://circleci.com/gh/pantheon-systems/example-drops-7-composer.svg?style=svg)](https://circleci.com/gh/pantheon-systems/example-drops-7-composer) [![Pantheon example-drops-7-composer](https://img.shields.io/badge/pantheon-example_drops_7_composer-yellow.svg)](https://dashboard.pantheon.io/sites/f4acd01e-c989-48ab-8921-69c38206edee#dev/code) [![Dev Site example-drops-7-composer](https://img.shields.io/badge/site-example_drops_7_composer-blue.svg)](http://dev-example-drops-7-composer.pantheonsite.io/)
+[![CircleCI](https://circleci.com/gh/pantheon-systems/example-drops-7-composer.svg?style=svg)](https://circleci.com/gh/pantheon-systems/example-drops-7-composer) 
+[![Pantheon example-drops-7-composer](https://img.shields.io/badge/pantheon-drops_7-yellow.svg)](https://dashboard.pantheon.io/sites/f4acd01e-c989-48ab-8921-69c38206edee#dev/code) 
+[![Dev Site example-drops-7-composer](https://img.shields.io/badge/site-drops_7-blue.svg)](http://dev-example-drops-7-composer.pantheonsite.io/)
 
 ## Overview
 
