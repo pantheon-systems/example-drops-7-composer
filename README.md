@@ -108,7 +108,7 @@ Enter the commands below to create a a new site on Pantheon and push a copy of t
 ```
 $ SITE="my-site"
 $ terminus site:create $SITE "My Site" "Drupal 7" --org="My Team"
-$ composer create-project pantheon-systems/example-drops-7-composer $SITE
+$ composer create-project pantheon-systems/example-drops-7-composer $SITE -s dev
 $ cd $SITE
 $ composer prepare-for-pantheon
 $ git init
