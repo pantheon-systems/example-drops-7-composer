@@ -14,14 +14,23 @@
     }
   },
   "require": {
-    "composer/installers": "~1.0",
+    "php": ">=5.2.5",
+    "ext-gd": "*",
+    "ext-xml": "*",
+    "ext-json": "*",
+    "ext-openssl": "*",
+    "ext-curl": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "composer/installers": "^1.0",
     "rvtraveller/qs-composer-installer": "^1.1",
-    "derhasi/composer-preserve-paths": "0.1.*",
     "cweagans/composer-patches": "^1.0",
+    "derhasi/composer-preserve-paths": "0.1.*",
+    "drupal/composer_autoloader": "1.*",
 
     "pantheon-systems/drops-7-composer": "7.*",
 
-    "drush/drush": "~8"
+    "drush/drush": "^8"
   },
   "require-dev": {
     "mikey179/vfsstream": "^1.2",
