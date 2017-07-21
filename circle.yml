@@ -53,10 +53,10 @@ dependencies:
     - composer create-project -n -d ~/.terminus/plugins pantheon-systems/terminus-secrets-plugin:~1
   post:
     - terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
-    - terminus build-env:delete:ci -n "$TERMINUS_SITE" --keep=2 --yes
+    - terminus build:env:delete:ci -n "$TERMINUS_SITE" --keep=2 --yes
     - composer -n build-assets
     - terminus env:wake -n "$TERMINUS_SITE.dev"
-    - terminus build-env:create -n "$TERMINUS_SITE.dev" "$TERMINUS_ENV" --yes --notify="$NOTIFY"
+    - terminus build:env:create -n "$TERMINUS_SITE.dev" "$TERMINUS_ENV" --yes --notify="$NOTIFY"
     - terminus drush "$TERMINUS_SITE.$TERMINUS_ENV" -- site-install --yes --site-name="$TEST_SITE_NAME" --account-mail="$ADMIN_EMAIL" --account-pass="$ADMIN_PASSWORD"
 test:
   override:
@@ -68,6 +68,6 @@ deployment:
   build-assets:
     branch: master
     commands:
-      - terminus build-env:merge -n "$TERMINUS_SITE.$TERMINUS_ENV" --yes
+      - terminus build:env:merge -n "$TERMINUS_SITE.$TERMINUS_ENV" --yes
       - terminus drush -n $TERMINUS_SITE.dev -- updatedb --yes
-      - terminus build-env:delete:pr -n "$TERMINUS_SITE" --yes
+      - terminus build:env:delete:pr -n "$TERMINUS_SITE" --yes
