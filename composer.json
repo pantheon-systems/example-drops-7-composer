@@ -50,7 +50,10 @@
     "drupal/core": "8.*"
   },
   "config": {
-    "vendor-dir": "vendor"
+    "vendor-dir": "vendor",
+    "platform": {
+      "php": "7.0"
+    }
   },
   "minimum-stability": "alpha",
   "prefer-stable": true,
