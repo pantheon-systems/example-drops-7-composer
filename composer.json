@@ -23,12 +23,13 @@
     "ext-pdo": "*",
     "ext-pdo_mysql": "*",
     "composer/installers": "^1.0",
+    "drush-ops/behat-drush-endpoint": "^1",
     "rvtraveller/qs-composer-installer": "^1.1",
     "cweagans/composer-patches": "^1.0",
     "derhasi/composer-preserve-paths": "0.1.*",
     "drupal/composer_autoloader": "1.*",
 
-    "pantheon-systems/drops-7-composer": "7.*",
+    "pantheon-systems/drops-7-composer": "^7",
 
     "drush/drush": "^8"
   },
@@ -41,7 +42,6 @@
     "jcalderonzumba/gastonjs": "^1.0.2",
     "jcalderonzumba/mink-phantomjs-driver": "^0.3.1",
     "drupal/drupal-extension": "^3.1",
-    "drush-ops/behat-drush-endpoint": "^0.0.4",
     "pantheon-systems/quicksilver-pushback": "~1",
     "phpunit/phpunit": "^4.8",
     "symfony/css-selector": "^2.8"
@@ -58,8 +58,12 @@
   },
   "scripts": {
     "build-assets": [
-      "./scripts/composer/install-or-update"
+        "@prepare-for-pantheon",
+        "composer install --optimize-autoloader --no-dev"
     ],
+    "lint": "find web/modules/custom web/themes/custom -name '*.php' -exec php -l {} \\;",
+    "code-sniff": "echo 'No code sniff step defined.'",
+    "unit-test": "echo 'No unit test step defined.'",
     "prepare-for-pantheon": "DrupalProject\\composer\\ScriptHandler::prepareForPantheon"
   },
   "config": {
