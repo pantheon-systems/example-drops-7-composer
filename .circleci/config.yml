@@ -2,7 +2,7 @@
 defaults: &defaults
   docker:
     - image: quay.io/pantheon-public/build-tools-ci:1.x
-  working_directory: ~/example_drops_8_composer
+  working_directory: ~/example_drops_7_composer
   environment:
     #=========================================================================
     # In addition to the environment variables defined in this file, also
