@@ -15,6 +15,7 @@ terminus -n build:env:merge "$TERMINUS_SITE.$TERMINUS_ENV" --yes
 
 # Run updatedb on the dev environment
 terminus -n drush $TERMINUS_SITE.dev -- updatedb --yes
+terminus -n drush $TERMINUS_SITE.dev -- cc all --yes
 
 # TODO: If there are any exported configuration files, then import them
 
