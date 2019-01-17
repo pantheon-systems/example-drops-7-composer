@@ -523,7 +523,7 @@
         },
         {
             "name": "drupal/core-render",
-            "version": "8.6.6",
+            "version": "8.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drupal/core-render.git",
@@ -558,7 +558,7 @@
         },
         {
             "name": "drupal/core-utility",
-            "version": "8.6.6",
+            "version": "8.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drupal/core-utility.git",
@@ -596,17 +596,17 @@
         },
         {
             "name": "drupal/drupal",
-            "version": "7.62.0",
+            "version": "7.63.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupal.org/project/drupal",
-                "reference": "7.62"
+                "reference": "7.63"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/drupal-7.62.zip",
-                "reference": "7.62",
-                "shasum": "b86aced4ea355228c4d093e4d38c7e5b596f874e"
+                "url": "https://ftp.drupal.org/files/projects/drupal-7.63.zip",
+                "reference": "7.63",
+                "shasum": "c85cfa730e69f4566db64328cf5a573b9c46f9f9"
             },
             "type": "drupal-core",
             "extra": {
@@ -614,8 +614,8 @@
                     "dev-7.x": "7.x-dev"
                 },
                 "drupal": {
-                    "version": "7.62",
-                    "datestamp": "1547664174",
+                    "version": "7.63",
+                    "datestamp": "1547681580",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -1042,16 +1042,16 @@
         },
         {
             "name": "pantheon-systems/drops-7-composer",
-            "version": "7.62",
+            "version": "7.63",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pantheon-systems/drops-7-composer.git",
-                "reference": "c36c1fdaf30758c7dd395294d632145be8f2662e"
+                "reference": "22346f7d3d9c9bbda4684786aa89f287c54e2b73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pantheon-systems/drops-7-composer/zipball/c36c1fdaf30758c7dd395294d632145be8f2662e",
-                "reference": "c36c1fdaf30758c7dd395294d632145be8f2662e",
+                "url": "https://api.github.com/repos/pantheon-systems/drops-7-composer/zipball/22346f7d3d9c9bbda4684786aa89f287c54e2b73",
+                "reference": "22346f7d3d9c9bbda4684786aa89f287c54e2b73",
                 "shasum": ""
             },
             "type": "drupal-core",
@@ -1150,7 +1150,7 @@
                 "source": "http://cgit.drupalcode.org/drupal",
                 "issues": "https://github.com/pantheon-systems/drops-7-composer/issues"
             },
-            "time": "2019-01-16T19:50:17+00:00"
+            "time": "2019-01-17T01:42:36+00:00"
         },
         {
             "name": "paragonie/random_compat",
