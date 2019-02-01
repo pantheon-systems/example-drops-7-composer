@@ -98,7 +98,7 @@ class FeatureContext extends RawDrupalContext implements Context, SnippetAccepti
         $site_mail = getenv('ADMIN_EMAIL');
         $admin_password = getenv('ADMIN_PASSWORD');
 
-        passthru("terminus --yes drush $site.$env -- --yes site-install standard --site-name=\"$site_name\" --site-mail=\"$site_mail\" --account-name=admin --account-pass=\"$admin_password\"'");
+        passthru("terminus --yes drush $site.$env -- --yes site-install pantheon --site-name=\"$site_name\" --site-mail=\"$site_mail\" --account-name=admin --account-pass=\"$admin_password\"'");
     }
 
     /**
