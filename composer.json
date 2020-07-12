@@ -26,7 +26,7 @@
     "drush-ops/behat-drush-endpoint": "^1",
     "rvtraveller/qs-composer-installer": "^1.1",
     "cweagans/composer-patches": "^1.0",
-    "derhasi/composer-preserve-paths": "0.1.*",
+    "drupal-composer/preserve-paths": "0.1.*",
     "drupal/composer_autoloader": "1.*",
 
     "pantheon-systems/drops-7-composer": "^7",
