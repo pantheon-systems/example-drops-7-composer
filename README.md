@@ -57,7 +57,7 @@ Pantheon will serve the site from the `/web` subdirectory due to the configurati
 
 #### `/config`
 
-One of the directories moved to the git root is `/config`. This directory holds Drupal's `.yml` configuration files. In more traditional repo structure these files would live at `/sites/default/config/`. Thanks to [this line in `settings.php`](https://github.com/pantheon-systems/example-drops-7-composer/blob/master/web/sites/default/settings.php#L19), the config is moved entirely outside of the web root.
+One of the directories moved to the git root is `/config`. This directory holds Drupal's `.yml` configuration files. In more traditional repo structure these files would live at `/sites/default/config/`. Thanks to [this line in `settings.php`](https://github.com/pantheon-systems/example-drops-7-composer/blob/main/web/sites/default/settings.php#L19), the config is moved entirely outside of the web root.
 
 ### `composer.json`
 
