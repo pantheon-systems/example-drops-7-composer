@@ -5,12 +5,8 @@ defaults:
     shell: bash
 env:
   TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-  #NOTIFY: 'scripts/github/add-commit-comment {project} {sha} "Created multidev environment [{site}#{env}]({dashboard-url})." {site-url}'
   TERM: dumb
-  #ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-  #ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
   GITHUB_TOKEN: ${{ github.token }}
-  #TEST_SITE_NAME: ${{ secrets.TEST_SITE_NAME }}
   CI_BRANCH: ${{ github.ref }}
   COMMIT_SHA: ${{ github.sha }}
   CI_BUILD_NUMBER: ${{ github.run_number }}
@@ -19,7 +15,6 @@ env:
 
   BASH_ENV: "./bash_env.txt"
   TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
-  #ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
   TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   CI_JOB_ID: ${{ github.run_number }}
@@ -104,8 +99,6 @@ jobs:
           echo "export TERMINUS_ENV=${PR_ENV:-dev}" >> $BASH_ENV
           export BEHAT_ADMIN_PASSWORD=$(openssl rand -base64 24)
           echo "export BEHAT_ADMIN_PASSWORD=${BEHAT_ADMIN_PASSWORD}" >> $BASH_ENV
-
-  # @todo Add deploy_dev job.
 
   deploy_multidev:
     container:
