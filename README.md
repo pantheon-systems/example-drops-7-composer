@@ -74,7 +74,7 @@ If you need to enable Github Actions for an existing project, you should copy .c
 - TERMINUS_TOKEN
 - TERMINUS_SITE
 - SSH_PRIVATE_KEY
-- GH_USER_EMAIL
+- GIT_EMAIL
 
 ## Updating your site
 

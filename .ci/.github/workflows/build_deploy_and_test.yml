@@ -20,7 +20,7 @@ env:
   CI_JOB_ID: ${{ github.run_number }}
   BEHAT_ADMIN_USERNAME: pantheon-ci-testing-$CI_JOB_ID
   BEHAT_ADMIN_EMAIL: no-reply+ci-$CI_JOB_ID@getpantheon.com
-  GITHUB_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
+  GITHUB_USER_EMAIL: ${{ secrets.GIT_EMAIL }}
   CGR_BASE_DIR: /composer/.global
   CGR_BIN_DIR: /composer/vendor/bin
 
