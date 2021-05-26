@@ -67,6 +67,15 @@ If you are just browsing this repository on GitHub, you may notice that the file
 
 So that CircleCI will have some test to run, this repository includes a configuration of Behat tests. You can add your own `.feature` files within `/tests/features/`.
 
+## Github Actions
+
+If you need to enable Github Actions for an existing project, you should copy .ci/.github to .github and then add the following secrets to Github Actions configuration:
+
+- TERMINUS_TOKEN
+- TERMINUS_SITE
+- SSH_PRIVATE_KEY
+- GIT_EMAIL
+
 ## Updating your site
 
 When using this repository to manage your Drupal site, you will no longer use the Pantheon dashboard to update your Drupal version. Instead, you will manage your updates using Composer. Ensure your site is in Git mode, clone it locally, and then run composer commands from there.  Commit and push your files back up to Pantheon as usual.

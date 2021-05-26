@@ -1,0 +1,391 @@
+name: Build, deploy and test
+on: push
+defaults:
+  run:
+    shell: bash
+env:
+  TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  TERM: dumb
+  GITHUB_TOKEN: ${{ github.token }}
+  CI_BRANCH: ${{ github.ref }}
+  COMMIT_SHA: ${{ github.sha }}
+  CI_BUILD_NUMBER: ${{ github.run_number }}
+  GITHUB_OWNER: ${{ github.repository_owner }}
+  CI_PROJECT_NAME: ${{ github.repository }}
+
+  BASH_ENV: "./bash_env.txt"
+  TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
+  TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  CI_JOB_ID: ${{ github.run_number }}
+  BEHAT_ADMIN_USERNAME: pantheon-ci-testing-$CI_JOB_ID
+  BEHAT_ADMIN_EMAIL: no-reply+ci-$CI_JOB_ID@getpantheon.com
+  GITHUB_USER_EMAIL: ${{ secrets.GIT_EMAIL }}
+  CGR_BASE_DIR: /composer/.global
+  CGR_BIN_DIR: /composer/vendor/bin
+
+jobs:
+  configure_env_vars:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: setup-environment-vars
+        run: |
+          if [ "$CI_BRANCH" != "refs/heads/master" ]; then
+            export CI_MERGE_REQUEST_IID=`curl -u "${GITHUB_OWNER}:${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.groot-preview+json" \
+              "https://api.github.com/repos/${CI_PROJECT_NAME}/commits/${COMMIT_SHA}/pulls" | \
+              python3 -c "import sys, json; print(json.load(sys.stdin)[0]['number'])"`
+
+            echo "export CI_MERGE_REQUEST_IID=${CI_MERGE_REQUEST_IID}" >> $BASH_ENV
+
+            export CI_BRANCH=`curl -u "${GITHUB_OWNER}:${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.groot-preview+json" \
+              "https://api.github.com/repos/${CI_PROJECT_NAME}/commits/${COMMIT_SHA}/pulls" | \
+              python3 -c "import sys, json; print(json.load(sys.stdin)[0]['head']['ref'])"`
+
+            echo "export CI_BRANCH=${CI_BRANCH}" >> $BASH_ENV
+
+            export CI_PR_URL=`curl -u "${GITHUB_OWNER}:${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.groot-preview+json" \
+              "https://api.github.com/repos/${CI_PROJECT_NAME}/commits/${COMMIT_SHA}/pulls" | \
+              python3 -c "import sys, json; print(json.load(sys.stdin)[0]['html_url'])"`
+
+            echo "export CI_PR_URL=${CI_PR_URL}" >> $BASH_ENV
+
+          else
+            export CI_BRANCH="master"
+          fi
+          export CURRENT_BRANCH=$CI_BRANCH
+          echo "export CURRENT_BRANCH=${CURRENT_BRANCH}" >> $BASH_ENV
+          echo "export PATH=$PATH:$HOME/bin:$HOME/terminus/bin" >> $BASH_ENV
+          export PR_ENV=${CI_MERGE_REQUEST_IID:+pr-$CI_MERGE_REQUEST_IID}
+          echo "export PR_ENV=${CI_MERGE_REQUEST_IID:+pr-$CI_MERGE_REQUEST_IID}" >> $BASH_ENV
+          echo "export TERMINUS_ENV=${PR_ENV:-dev}" >> $BASH_ENV
+          export BEHAT_ADMIN_PASSWORD=$(openssl rand -base64 24)
+          echo "export BEHAT_ADMIN_PASSWORD=${BEHAT_ADMIN_PASSWORD}" >> $BASH_ENV
+
+  deploy_multidev:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    needs: [configure_env_vars]
+    if: ${{ github.ref != 'refs/heads/master' }}
+
+    steps:
+      - name: Update git version
+        run: |
+          echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu xenial main" >> /etc/apt/sources.list
+          apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24
+          apt update -y
+          apt install -y git
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: prepare-environment-vars
+        run: |
+          source $BASH_ENV
+          export name=review/pr-${CI_MERGE_REQUEST_IID}
+          export url=https://pr-${CI_MERGE_REQUEST_IID}-${TERMINUS_SITE}.pantheonsite.io/
+
+      - name: Deploy to multidev
+        run: |
+          eval $(ssh-agent -s) && ssh-add <(echo "$SSH_PRIVATE_KEY")
+          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          git config --global user.email "$GITHUB_USER_EMAIL"
+          git config --global user.name "Github CI"
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          terminus build:env:delete:pr -n "$TERMINUS_SITE" --yes
+          composer build-assets
+          terminus env:wake -n "$TERMINUS_SITE.dev"
+          terminus build-env:create -n "$TERMINUS_SITE.dev" "$TERMINUS_ENV" --yes
+
+  deploy_dev:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    needs: [configure_env_vars]
+    if: ${{ github.ref == 'refs/heads/master' }}
+
+    steps:
+      - name: Update git version
+        run: |
+          echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu xenial main" >> /etc/apt/sources.list
+          apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24
+          apt update -y
+          apt install -y git
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: prepare-environment-vars
+        run: |
+          source $BASH_ENV
+          export name=review/pr-${CI_MERGE_REQUEST_IID}
+          export url=https://pr-${CI_MERGE_REQUEST_IID}-${TERMINUS_SITE}.pantheonsite.io/
+
+      - name: Deploy to dev
+        run: |
+          eval $(ssh-agent -s) && ssh-add <(echo "$SSH_PRIVATE_KEY")
+          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          git config --global user.email "$GITHUB_USER_EMAIL"
+          git config --global user.name "Github CI"
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          composer build-assets
+          terminus build-env:push-code $TERMINUS_SITE.dev
+          terminus build:env:delete:pr -n "$TERMINUS_SITE" --yes
+
+  test_code_sniff_unit_test:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    needs: [configure_env_vars, deploy_dev, deploy_multidev]
+    if: ${{ always() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: prepare-environment-vars
+        run: |
+          source $BASH_ENV
+
+      - name: Run unit tests
+        run: |
+          composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+          composer -n code-sniff
+          composer -n unit-test
+
+  test_behat:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    needs: [configure_env_vars, deploy_dev, deploy_multidev]
+    if: ${{ always() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: prepare-environment-vars
+        run: |
+          source $BASH_ENV
+
+      - name: Run behat tests
+        run: |
+          eval $(ssh-agent -s) && ssh-add <(echo "$SSH_PRIVATE_KEY")
+          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+          ./.ci/behat-test.sh
+
+  test_behat_cleanup:
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:4.x
+      options: --user root
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [configure_env_vars, test_behat]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Cache bash_env.txt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-bash-env
+        with:
+          path: bash_env.txt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.run_number }}
+
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache vendor folder
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-vendor
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: prepare-environment-vars
+        run: |
+          source $BASH_ENV
+
+      - name: Cleanup behat tests
+        run: |
+          eval $(ssh-agent -s) && ssh-add <(echo "$SSH_PRIVATE_KEY")
+          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+          ./.ci/behat-test-cleanup.sh
