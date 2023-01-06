@@ -1,4 +1,4 @@
-# Example Drops 7 Composer
+# Example Drops 7 Composer test
 
 This repository can be used to set up a Composer-Managed Drupal 7 site on [Pantheon](https://pantheon.io).
 
