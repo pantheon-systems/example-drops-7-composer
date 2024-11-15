@@ -7,10 +7,6 @@
     "drupal": {
       "type": "composer",
       "url":  "https://packages.drupal.org/7"
-    },
-    "drops": {
-      "type": "vcs",
-      "url": "https://github.com/pantheon-systems/drops-7-composer"
     }
   },
   "require": {
